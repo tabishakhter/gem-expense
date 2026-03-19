@@ -7,12 +7,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #f8fafc; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #f8fafc; touch-action: manipulation; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .accent-gradient { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .date-card { min-width: 60px; transition: all 0.3s ease; }
-        .date-card.active { background: #6366f1 !important; color: white !important; transform: scale(1.1); z-index: 10; border-color: transparent; }
+        .date-card { min-width: 65px; transition: all 0.3s ease; }
+        .date-card.active { background: #6366f1 !important; color: white !important; transform: scale(1.1); border-color: transparent; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4); }
     </style>
 </head>
 <body class="p-4 max-w-2xl mx-auto pb-24">
@@ -20,24 +20,24 @@
     <header class="flex justify-between items-center mt-4 mb-8">
         <div>
             <h1 class="text-2xl font-bold tracking-tight text-white">Wealth</h1>
-            <p id="currentMonth" class="text-slate-400 text-sm">March 2026</p>
+            <p id="currentMonthDisplay" class="text-slate-400 text-sm">March 2026</p>
         </div>
         <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-indigo-400">JD</div>
     </header>
 
-    <div id="dateScroller" class="flex space-x-3 overflow-x-auto no-scrollbar mb-8 py-2 px-1">
+    <div id="dateScroller" class="flex space-x-3 overflow-x-auto no-scrollbar mb-8 py-4 px-1">
         </div>
 
-    <div class="accent-gradient p-8 rounded-[2.5rem] mb-10 shadow-2xl shadow-indigo-500/20">
-        <p class="text-indigo-100/70 text-xs font-bold uppercase tracking-widest mb-1">Total Spending</p>
-        <h2 id="totalSpend" class="text-5xl font-extrabold mb-6">₹0</h2>
-        <div class="text-xs text-white/50 font-medium">Monthly Total: <span id="monthlyTotal">₹0</span></div>
+    <div class="accent-gradient p-8 rounded-[2.5rem] mb-10 shadow-2xl">
+        <p class="text-indigo-100/70 text-xs font-bold uppercase tracking-widest mb-1">Daily Spend</p>
+        <h2 id="dailyTotalLabel" class="text-5xl font-extrabold mb-6">₹0</h2>
+        <div class="text-xs text-white/50 font-medium italic">Monthly Total: <span id="monthlyTotalLabel">₹0</span></div>
     </div>
 
     <div class="px-2">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-lg font-bold">Transactions</h3>
-            <button onclick="openModal()" class="w-12 h-12 accent-gradient rounded-full flex items-center justify-center shadow-lg active:scale-90 transition">
+            <button id="openBtn" class="w-12 h-12 accent-gradient rounded-full flex items-center justify-center shadow-lg active:scale-90 transition">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             </button>
         </div>
@@ -45,9 +45,134 @@
             </div>
     </div>
 
-    <div id="expenseModal" style="display:none; position: fixed; inset: 0; background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(10px); z-index: 999; align-items: flex-end; justify-content: center;">
-        <div class="bg-slate-900 w-full max-w-md p-8 rounded-t-[2.5rem] border-t border-slate-800 shadow-2xl animate-in slide-in-from-bottom duration-300">
-            <h4 class="text-xl font-bold mb-6">Add Expense</h4>
+    <div id="expenseModal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 items-end md:items-center justify-center p-4">
+        <div class="bg-slate-900 w-full max-w-md p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl">
+            <h4 class="text-xl font-bold mb-6">Add Entry</h4>
             <div class="space-y-4">
-                <input type="number" id="expAmount" placeholder="Amount ₹" class="w-full bg-slate-800 p-5 rounded-2xl text-2xl font-bold text-white outline-none ring-1 ring-slate-700 focus:ring-2 focus:ring-indigo-500">
-                <input type="text" id="expNote" placeholder="For what?" class="w-full bg-slate-800 p-5 rounded-2xl text-white outline-none ring-1 ring-slate-70
+                <input type="number" id="expAmount" placeholder="Amount ₹" class="w-full bg-slate-800 p-5 rounded-2xl text-2xl font-bold text-white outline-none ring-1 ring-slate-700">
+                <input type="text" id="expNote" placeholder="For what?" class="w-full bg-slate-800 p-5 rounded-2xl text-white outline-none ring-1 ring-slate-700">
+                <select id="expCat" class="w-full bg-slate-800 p-5 rounded-2xl text-slate-300 outline-none ring-1 ring-slate-700">
+                    <option>Lifestyle</option>
+                    <option>Business</option>
+                    <option>Food</option>
+                    <option>Transport</option>
+                </select>
+                <button id="saveBtn" class="w-full accent-gradient py-5 rounded-2xl font-bold text-white shadow-xl mt-4">Save Entry</button>
+                <button id="closeBtn" class="w-full py-4 text-slate-500 font-semibold text-sm">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let expenses = JSON.parse(localStorage.getItem('wealth_app_data')) || [];
+            let selectedDate = new Date().toDateString();
+
+            const dateScroller = document.getElementById('dateScroller');
+            const historyList = document.getElementById('historyList');
+            const modal = document.getElementById('expenseModal');
+
+            function updateUI() {
+                // Update Monthly/Daily Labels
+                const dayData = expenses.filter(e => e.date === selectedDate);
+                const dailySum = dayData.reduce((s, e) => s + e.amount, 0);
+                const monthlySum = expenses.reduce((s, e) => s + e.amount, 0);
+
+                document.getElementById('dailyTotalLabel').innerText = `₹${dailySum.toLocaleString()}`;
+                document.getElementById('monthlyTotalLabel').innerText = `₹${monthlySum.toLocaleString()}`;
+
+                // Update Transaction List
+                if (dayData.length === 0) {
+                    historyList.innerHTML = `<div class="py-20 text-center text-slate-600 italic">No entries for this date.</div>`;
+                } else {
+                    historyList.innerHTML = dayData.map(e => `
+                        <div class="glass p-5 rounded-[2rem] flex justify-between items-center">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center">💰</div>
+                                <div>
+                                    <h4 class="font-bold text-white">${e.note}</h4>
+                                    <p class="text-xs text-slate-500">${e.category}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-red-400">-₹${e.amount}</p>
+                                <button onclick="deleteEntry(${e.id})" class="text-[10px] text-slate-600 uppercase font-bold mt-1">Delete</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            function renderCalendar() {
+                const today = new Date();
+                let html = '';
+                for (let i = -14; i <= 7; i++) {
+                    const d = new Date();
+                    d.setDate(today.getDate() + i);
+                    const dString = d.toDateString();
+                    const isActive = dString === selectedDate;
+                    
+                    html += `
+                        <div onclick="window.changeDate('${dString}')" class="date-card glass p-4 rounded-2xl flex flex-col items-center border border-white/5 cursor-pointer ${isActive ? 'active' : ''}">
+                            <span class="text-[10px] uppercase font-bold opacity-50 mb-1">${d.toLocaleDateString('en-US', {weekday: 'short'})}</span>
+                            <span class="text-lg font-extrabold">${d.getDate()}</span>
+                        </div>
+                    `;
+                }
+                dateScroller.innerHTML = html;
+                if (!window.hasScrolled) {
+                    dateScroller.scrollLeft = 500;
+                    window.hasScrolled = true;
+                }
+            }
+
+            window.changeDate = function(d) {
+                selectedDate = d;
+                renderCalendar();
+                updateUI();
+            };
+
+            window.deleteEntry = function(id) {
+                if(confirm("Delete this transaction?")) {
+                    expenses = expenses.filter(e => e.id !== id);
+                    localStorage.setItem('wealth_app_data', JSON.stringify(expenses));
+                    updateUI();
+                }
+            };
+
+            document.getElementById('openBtn').onclick = () => modal.classList.remove('hidden');
+            document.getElementById('closeBtn').onclick = () => modal.classList.add('hidden');
+
+            document.getElementById('saveBtn').onclick = function() {
+                const amt = document.getElementById('expAmount').value;
+                const note = document.getElementById('expNote').value;
+                const cat = document.getElementById('expCat').value;
+
+                if (!amt || !note) return alert("Fill all fields");
+
+                const item = {
+                    id: Date.now(),
+                    amount: parseFloat(amt),
+                    note: note,
+                    category: cat,
+                    date: selectedDate
+                };
+
+                expenses.unshift(item);
+                localStorage.setItem('wealth_app_data', JSON.stringify(expenses));
+                
+                document.getElementById('expAmount').value = '';
+                document.getElementById('expNote').value = '';
+                modal.classList.add('hidden');
+                updateUI();
+            };
+
+            // Initial Load
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById('currentMonthDisplay').innerText = `${monthNames[new Date().getMonth()]} ${new Date().getFullYear()}`;
+            renderCalendar();
+            updateUI();
+        });
+    </script>
+</body>
+</html>
